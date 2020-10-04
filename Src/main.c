@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "assignment.h"
 
 
 int main(void)
@@ -30,53 +31,48 @@ int main(void)
    * Write to bits, that are meant for change.
    */
 
-  /*Enables clock for GPIO port B*/
-  *((volatile uint32_t *) (uint32_t)(0x40021000 + 0x00000014U)) |= (uint32_t)(1 << 18);
+  /* Enable clock for GPIO port A*/
 
-  /*GPIOB pin 3 and 6 setup*/
-  /*GPIO MODER register*/
-  //Set mode for pin 3
-  *((volatile uint32_t *)((uint32_t)0x48000400)) &= ~(uint32_t)(0x3 << 6);
-  *((volatile uint32_t *)((uint32_t)0x48000400)) |= (uint32_t)(1 << 6);
-  //Set mode for pin 6
-  *((volatile uint32_t *)((uint32_t)0x48000400)) &= ~(uint32_t)(0x3 << 12);
+	//type your code for GPIOA clock enable here:
+	*((volatile uint32_t *) (uint32_t)(RCC_BASE_ADDR + RCC_AHBENR_REG)) |= (uint32_t)(1 << 17);
 
-  /*GPIO OTYPER register*/
-  *((volatile uint32_t *)((uint32_t)(0x48000400 + 0x04U))) &= ~(1 << 3);
+// PIN 3 INPUT
+	*((volatile uint32_t *)((uint32_t)GPIOA_BASE_ADDR)) &= ~(uint32_t)(0x3 << 8);
+// PIN 4 OUTPUT
+	*((volatile uint32_t *)((uint32_t)GPIOA_BASE_ADDR)) &= ~(uint32_t)(0x3 << 10);
+	*((volatile uint32_t *)((uint32_t)GPIOA_BASE_ADDR)) |= (uint32_t)(1 << 10);
 
-  /*GPIO OSPEEDR register*/
-  //Set Low speed for GPIOB pin 3
-  *((volatile uint32_t *)((uint32_t)(0x48000400 + 0x08U))) &= ~(0x3 << 6);
+// OTYPER
+	*((volatile uint32_t *)((uint32_t)(GPIOA_BASE_ADDR + GPIOA_OTYPER_REG))) &= ~(1 << 5);
+// OSPEEDR pre pin4 ako ouput
+	*((volatile uint32_t *)((uint32_t)(GPIOA_BASE_ADDR + GPIOA_OSPEEDER_REG))) &= ~(0x3 << 10);
 
-  /*GPIO PUPDR register, reset*/
-  //Set pull up for GPIOB pin 6 (input)
-  *((volatile uint32_t *)((uint32_t)(0x48000400 + 0x0CU))) |= (1 << 12);
-  //Set no pull for GPIOB pin 3
-  *((volatile uint32_t *)((uint32_t)(0x48000400 + 0x0CU))) &= ~(0x3 << 6);
+// GPIO PUPDR register, reset
+// pull up pre GPIOA 3
+	*((volatile uint32_t *)((uint32_t)(GPIOA_BASE_ADDR + GPIOA_PUPDR_REG))) |= (1 << 8);
+// NO pull pre GPIOA 4
+	*((volatile uint32_t *)((uint32_t)(GPIOA_BASE_ADDR + GPIOA_PUPDR_REG))) &= ~(0x3 << 10);
 
   while (1)
   {
 	  //GPIO IDR, read input from pin 6
-	  if(!(*((volatile uint32_t *)((uint32_t)(0x48000400 + 0x10U))) & (1 << 6)))
+	  if(BUTTON_GET_STATE)
 	  {
-		  //GPIO BSRR register, set output pin 3
 		  LED_ON;
-		  //delay
+		  // 0.25s delay
 		  for(uint16_t i = 0; i < 0xFF00; i++){}
-		  //GPIO BRR, reset output pin 3
 		  LED_OFF;
-		  //delay
+		  // 0.25 delay
 		  for(uint16_t i = 0; i < 0xFF00; i++){}
 	  }
 	  else
 	  {
-		  //GPIO BSRR register, set output pin 3
 		  LED_ON;
-		  //delay
+		  //delay 1s
 		  for(uint32_t i = 0; i < 0xFFFF0; i++){}
-		  //GPIO BRR, reset output pin 3
+
 		  LED_OFF;
-		  //delay
+		  //delay 1s
 		  for(uint32_t i = 0; i < 0xFFF00; i++){}
 	  }
   }
