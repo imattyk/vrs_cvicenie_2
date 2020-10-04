@@ -22,54 +22,58 @@
 #include "main.h"
 #include "assignment.h"
 
+
 int main(void)
 {
   /*
-   *  DO NOT WRITE TO THE WHOLE REGISTER!!!
-   *  Write to the bits, that are meant for change.
-   */
-
-
-  /*
-   * TASK - configure MCU peripherals so that button state can be read and LED will blink.
-   * Button must be connected to the GPIO port A and its pin 3.
-   * LED must be connected to the GPIO port A and its pin 4.
+   * DO NOT WRITE TO THE WHOLE REGISTER!!!
    *
-   * In header file "assignment.h" define macros for MCU registers access and LED blink application.
-   * Code in this file must use these macros for the peripherals setup.
-   * Code of the LED blink application is already given so just the macros used in the application must be defined.
+   * Write to bits, that are meant for change.
    */
-
 
   /* Enable clock for GPIO port A*/
 
 	//type your code for GPIOA clock enable here:
+	*((volatile uint32_t *) (uint32_t)(RCC_BASE_ADDR + RCC_AHBENR_REG)) |= (uint32_t)(1 << 17);
 
+// PIN 3 INPUT
+	*((volatile uint32_t *)((uint32_t)GPIOA_BASE_ADDR)) &= ~(uint32_t)(0x3 << 8);
+// PIN 4 OUTPUT
+	*((volatile uint32_t *)((uint32_t)GPIOA_BASE_ADDR)) &= ~(uint32_t)(0x3 << 10);
+	*((volatile uint32_t *)((uint32_t)GPIOA_BASE_ADDR)) |= (uint32_t)(1 << 10);
 
-  /* GPIOA pin 3 and 4 setup */
+// OTYPER
+	*((volatile uint32_t *)((uint32_t)(GPIOA_BASE_ADDR + GPIOA_OTYPER_REG))) &= ~(1 << 5);
+// OSPEEDR pre pin4 ako output
+	*((volatile uint32_t *)((uint32_t)(GPIOA_BASE_ADDR + GPIOA_OSPEEDER_REG))) &= ~(0x3 << 10);
 
-	//type your code for GPIOA pins setup here:
-
+// GPIO PUPDR register, reset
+// pull up pre GPIOA 3
+	*((volatile uint32_t *)((uint32_t)(GPIOA_BASE_ADDR + GPIOA_PUPDR_REG))) |= (1 << 8);
+// NO pull pre GPIOA 4
+	*((volatile uint32_t *)((uint32_t)(GPIOA_BASE_ADDR + GPIOA_PUPDR_REG))) &= ~(0x3 << 10);
 
   while (1)
   {
+	  //GPIO IDR, read input from pin 6
 	  if(BUTTON_GET_STATE)
 	  {
-		  // 0.25s delay
-		  LL_mDelay(250);
 		  LED_ON;
-		  // 0.25s delay
-		  LL_mDelay(250);
+		  // 0.25s delay, delay funkcia co ste tu mali nefungovala (runtime error)
+		  for(uint16_t i = 0; i < 0xFF00; i++){}
 		  LED_OFF;
+		  // 0.25 delay
+		  for(uint16_t i = 0; i < 0xFF00; i++){}
 	  }
 	  else
 	  {
-		  // 1s delay
-		  LL_mDelay(1000);
 		  LED_ON;
-		  // 1s delay
-		  LL_mDelay(1000);
+		  //delay 1s
+		  for(uint32_t i = 0; i < 0xFFFF0; i++){}
+
 		  LED_OFF;
+		  //delay 1s
+		  for(uint32_t i = 0; i < 0xFFF00; i++){}
 	  }
   }
 
